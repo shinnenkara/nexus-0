@@ -10,13 +10,13 @@ Local MCP knowledge base for company-standard workflows, rules, and skills acros
 
 ## 2. Initial setup
 
-1. Install dependencies:
+Install dependencies:
 
    ```bash
    npm install
    ```
 
-2. Build the server:
+Build the server:
 
    ```bash
    npm run build
@@ -24,12 +24,12 @@ Local MCP knowledge base for company-standard workflows, rules, and skills acros
 
    The MCP client config runs `dist/src/index.js`, so `build` is required before connecting from a client.
 
-### 2.1 MCP config
+MCP config:
 
 - Use the config pattern from [`docs/mcp/setup.md`](docs/mcp/setup.md) (see "Agent Configuration Pattern").
 - Optional: run `npm run dev` once if you want startup diagnostics while validating local setup.
 
-### 2.2 Agent prompt
+Agent prompt:
 
 - Use [`docs/mcp/prompt-template.md`](docs/mcp/prompt-template.md) as the required base prompt.
 - This keeps workflow retrieval and execution behavior consistent across agents.
