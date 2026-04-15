@@ -8,7 +8,7 @@ Local MCP knowledge base for company-standard workflows, rules, and skills acros
 - No per-agent prompt drift.
 - Guidance-first MCP commands that return structured instructions.
 
-## Quickstart
+## 2. Initial setup
 
 1. Install dependencies:
 
@@ -16,33 +16,41 @@ Local MCP knowledge base for company-standard workflows, rules, and skills acros
    npm install
    ```
 
-2. Run server:
+2. Build the server:
 
    ```bash
-   npm run dev
+   npm run build
    ```
+
+   The MCP client config runs `dist/src/index.js`, so `build` is required before connecting from a client.
+
+### 2.1 MCP config
+
+- Use the config pattern from [`docs/mcp/setup.md`](docs/mcp/setup.md) (see "Agent Configuration Pattern").
+- Optional: run `npm run dev` once if you want startup diagnostics while validating local setup.
+
+### 2.2 Agent prompt
+
+- Use [`docs/mcp/prompt-template.md`](docs/mcp/prompt-template.md) as the required base prompt.
+- This keeps workflow retrieval and execution behavior consistent across agents.
 
 ## Requirements
 
 - Node.js `>=22`
 - npm `>=10`
 
-## Canonical Sources
+## 3. Sources
 
-- Guidance MCP command definitions: `src/tools/guidanceTools.ts`
-- Workflow manifests: `registry/workflows/*.workflow.yaml`
-- Workflow validation schema: `src/registry/schemas.ts`
-- User rules: `registry/rules/*.md`
-- User skills: `registry/skills/*/SKILL.md`
-- PR templates: `registry/templates/pr/`
+- Guidance MCP command definitions: [`src/tools/guidanceTools.ts`](src/tools/guidanceTools.ts)
+- Workflow manifests: [`registry/workflows/`](registry/workflows/)
+- Workflow validation schema: [`src/registry/schemas.ts`](src/registry/schemas.ts)
+- User rules: [`registry/rules/`](registry/rules/)
+- User skills: [`registry/skills/`](registry/skills/)
+- PR templates: [`registry/templates/pr/`](registry/templates/pr/)
+- Generated tool catalog: [`docs/mcp/tool-catalog.md`](docs/mcp/tool-catalog.md)
 
-Do not duplicate registry content in README. The generated catalog is in `docs/mcp/tool-catalog.md`.
+Do not duplicate registry content in README. Use the generated catalog for command reference.
 
-## Documentation
+## 4. How to contribute
 
-- Setup: `docs/mcp/setup.md`
-- General agent prompt: `docs/mcp/prompt-template.md`
-- Contributing guide: `docs/mcp/contributing.md`
-- Generated tool catalog: `docs/mcp/tool-catalog.md`
-
-For contributor quality gates and maintenance commands, use `docs/mcp/contributing.md`.
+Follow the contribution and quality-gate workflow in [`docs/mcp/contributing.md`](docs/mcp/contributing.md).
