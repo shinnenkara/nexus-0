@@ -1,4 +1,4 @@
-# Company Guidance MCP
+# Local Guidance MCP
 
 Local MCP knowledge base for company-standard workflows, rules, and skills across any local MCP-capable coding agent.
 
