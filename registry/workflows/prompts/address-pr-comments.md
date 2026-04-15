@@ -1,12 +1,14 @@
 ---
 description: Analyze PR description and comments to produce a dev plan
 ---
+
 ## Usage
 
 ```
 /address-pr-comments [BRANCH_PR_NUMBER_OR_URL]
 ```
-*(Note: If no PR number is provided, rely on the currently checked-out git branch).*
+
+_(Note: If no PR number is provided, rely on the currently checked-out git branch)._
 
 ## Constraints
 
@@ -24,23 +26,27 @@ description: Analyze PR description and comments to produce a dev plan
    - Get inline code comments: `gh api --paginate repos/{owner}/{repo}/pulls/{pr_number}/comments | jq '.[] | {user: .user.login, body, path, line}'`
 4. **Contextualize**: Map all fetched comments to the actual codebase.
 5. **Categorize**: Mentally divide every comment into two buckets:
-   - *Actionable*: The request is clear and the code can be modified.
-   - *Needs Clarification*: The request is vague, contradictory, or outside the scope of the PR.
+   - _Actionable_: The request is clear and the code can be modified.
+   - _Needs Clarification_: The request is vague, contradictory, or outside the scope of the PR.
 
 ## Phase 2: Action & Communication Plan
 
 Process ALL comments before generating this plan. Produce a single, cohesive output divided into two sections:
 
 ### A. Communication Plan (For Vague Feedback)
+
 For every comment categorized as "Needs Clarification":
+
 - Quote the original reviewer and their comment.
 - Draft a short, professional reply in the chat asking for clarification or pushing back, so the user can copy/paste it into GitHub.
 
 ### B. Dev Plan (For Actionable Feedback)
+
 For all actionable comments, provide a concise plan:
+
 - **Feedback Summary**: A brief, numbered checklist of the exact issues being resolved.
 - **Files to modify/create**: Exact file paths, bulleted.
 - **Implementation steps**: Logical sequence to complete the work (e.g., "1. Address database schema request in X, 2. Update controller logic in Y").
 - **Testing strategy**:
-   - API unit/integration tests to add/update based on the new changes.
-   - `data-testid` attributes to add on modified React components.
+  - API unit/integration tests to add/update based on the new changes.
+  - `data-testid` attributes to add on modified React components.

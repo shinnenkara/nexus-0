@@ -1,6 +1,7 @@
 ---
 description: Analyze a ClickUp ticket, codebase and produce a dev plan
 ---
+
 ## Usage
 
 ```
@@ -18,13 +19,13 @@ description: Analyze a ClickUp ticket, codebase and produce a dev plan
 
 1. **Read the ticket** via ClickUp MCP — description, requirements, acceptance criteria, and comments.
 2. **Search the codebase** for relevant entry points implied by the ticket:
-    - API routes / controllers
-    - Database schema / models
-    - Background jobs / crons
-    - React components (if applicable)
+   - API routes / controllers
+   - Database schema / models
+   - Background jobs / crons
+   - React components (if applicable)
 3. **Gap-check the Acceptance Criteria**:
-    - If requirements are vague, incomplete, or the relevant code cannot be found → **STOP**.
-    - Draft a short, professional message listing the missing information so the user can ask the PM or tech lead.
+   - If requirements are vague, incomplete, or the relevant code cannot be found → **STOP**.
+   - Draft a short, professional message listing the missing information so the user can ask the PM or tech lead.
 
 ## Phase 2: Dev Plan
 
@@ -34,5 +35,5 @@ Only proceed here if Phase 1 passes. Produce a concise plan:
 - **Files to modify/create**: Exact file paths, bulleted.
 - **Implementation steps**: Logical sequence to complete the work.
 - **Testing strategy**:
-    - API unit/integration tests to add or update.
-    - `data-testid` attributes to add on modified React components.
+  - API unit/integration tests to add or update.
+  - `data-testid` attributes to add on modified React components.
