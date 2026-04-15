@@ -32,7 +32,11 @@ export function renderToolCatalogMarkdown(
     lines.push("");
     lines.push(`- Objective: ${workflow.objective}`);
     if (workflow.context && Object.keys(workflow.context).length > 0) {
-      lines.push(`- Context keys: ${Object.keys(workflow.context).map((key) => `\`${key}\``).join(", ")}`);
+      lines.push(
+        `- Context keys: ${Object.keys(workflow.context)
+          .map((key) => `\`${key}\``)
+          .join(", ")}`
+      );
     }
     lines.push("");
     lines.push("| Step | Guidance | Required Capability | Optional |");

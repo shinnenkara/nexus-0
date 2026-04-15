@@ -12,17 +12,17 @@ Local MCP knowledge base for company-standard workflows, rules, and skills acros
 
 Install dependencies:
 
-   ```bash
-   npm install
-   ```
+```bash
+npm install
+```
 
 Build the server:
 
-   ```bash
-   npm run build
-   ```
+```bash
+npm run build
+```
 
-   The MCP client config runs `dist/src/index.js`, so `build` is required before connecting from a client.
+The MCP client config runs `dist/src/index.js`, so `build` is required before connecting from a client.
 
 MCP config:
 
