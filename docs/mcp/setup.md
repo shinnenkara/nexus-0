@@ -21,7 +21,7 @@ Use this command for any local MCP-capable client:
 ```json
 {
   "mcpServers": {
-    "company-local": {
+    "local-guide": {
       "command": "node",
       "args": ["/absolute/path/to/nexus-0/dist/src/index.js"]
     }
