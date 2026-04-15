@@ -49,6 +49,7 @@ When asked to "Create a PR" or "Open a PR", execute the following steps strictly
 
 5. **Execute:**
    - Write the drafted PR body to a temporary file named `.pr_body.md` in the root directory. Do not try to pass the body as a string in the CLI.
-   - Execute the command immediately using the `--body-file` flag: `gh pr create --title "<Title>" --body-file .pr_body.md --assignee "shinnenkara" --reviewer "carbmee/data-raiders"`
+   - Use `context.prCreationDefaults.assignee` and `context.prCreationDefaults.reviewer`.
+   - Execute the command immediately using the `--body-file` flag: `gh pr create --title "<Title>" --body-file .pr_body.md --assignee "<context.prCreationDefaults.assignee>" --reviewer "<context.prCreationDefaults.reviewer>"`
    - Output the final GitHub PR URL for me to click.
    - Delete the temporary `.pr_body.md` file to keep the workspace clean.

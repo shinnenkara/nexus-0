@@ -6,6 +6,9 @@ constraints:
   - Execute steps strictly sequentially without asking for intermediate confirmation.
   - Do not pass the PR body as a string to the CLI; you must write it to a temporary file.
   - The PR body must strictly follow the defined markdown sections (Description, Changes, Related Issue, Demonstration).
+additionalContext:
+  - key: prCreationDefaults
+    path: registry/workflows/config/pr-creation.defaults.yaml
 steps:
   - id: get_branch_context
     requiredCapability: Git CLI operations
@@ -33,5 +36,6 @@ steps:
     requiredCapability: GitHub CLI and File System I/O
     guidance: |
       Write the synthesized PR body to a temporary file named `.pr_body.md` in the root directory.
-      Execute `gh pr create --title "<Title>" --body-file .pr_body.md --assignee "shinnenkara" --reviewer "carbmee/data-raiders"`.
+      Use `context.prCreationDefaults.assignee` and `context.prCreationDefaults.reviewer`.
+      Execute `gh pr create --title "<Title>" --body-file .pr_body.md --assignee "<context.prCreationDefaults.assignee>" --reviewer "<context.prCreationDefaults.reviewer>"`.
       Verify the command succeeds, output the PR URL to me, and then immediately delete the `.pr_body.md` file.

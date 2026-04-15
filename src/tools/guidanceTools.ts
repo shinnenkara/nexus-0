@@ -101,6 +101,15 @@ function renderWorkflowPrompt(
     }
   }
 
+  if (workflow.context && Object.keys(workflow.context).length > 0) {
+    lines.push("");
+    lines.push("## Context");
+    lines.push("Use this preloaded context directly.");
+    lines.push("```json");
+    lines.push(JSON.stringify(workflow.context, null, 2));
+    lines.push("```");
+  }
+
   if (workflow.constraints && workflow.constraints.length > 0) {
     lines.push("");
     lines.push("## Constraints");

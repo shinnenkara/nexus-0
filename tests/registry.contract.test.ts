@@ -26,4 +26,17 @@ describe("registry contracts", () => {
     expect(rules.length).toBeGreaterThan(0);
     expect(skills.length).toBeGreaterThan(0);
   });
+
+  it("hydrates workflow context from additional context files", async () => {
+    const workflows = await loadWorkflowDefinitions();
+    const createPrWorkflow = workflows.find((workflow) => workflow.name === "workflow.createPrFromTicket");
+    expect(createPrWorkflow).toBeDefined();
+    expect(createPrWorkflow?.context).toBeDefined();
+    expect(createPrWorkflow?.context?.prCreationDefaults).toEqual(
+      expect.objectContaining({
+        assignee: expect.any(String),
+        reviewer: expect.any(String)
+      })
+    );
+  });
 });

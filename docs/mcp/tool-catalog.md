@@ -59,6 +59,7 @@ Fetches ticket context from an issue tracker, generates a compliant branch name,
 Builds PR body from branch and ticket context with deterministic fallback chain and executes GitHub PR creation.
 
 - Objective: Draft a high-quality pull request title and markdown body grounded in ticket intent and actual code changes, then autonomously publish it via GitHub CLI.
+- Context keys: `prCreationDefaults`
 
 | Step | Guidance | Required Capability | Optional |
 | --- | --- | --- | --- |
@@ -76,7 +77,8 @@ Identify specific structural changes (e.g., modified API payloads, function sign
 The body must include exactly these headings: "## Description", "### Changes" (bulleted list), "### Related Issue" (with markdown link to ClickUp), and "## Demonstration" (Before/After snippets, or explicitly write "[none]" if none exist).
  | Markdown text generation | no |
 | `execute_pr_creation` | Write the synthesized PR body to a temporary file named `.pr_body.md` in the root directory.
-Execute `gh pr create --title "<Title>" --body-file .pr_body.md --assignee "shinnenkara" --reviewer "carbmee/data-raiders"`.
+Use `context.prCreationDefaults.assignee` and `context.prCreationDefaults.reviewer`.
+Execute `gh pr create --title "<Title>" --body-file .pr_body.md --assignee "<context.prCreationDefaults.assignee>" --reviewer "<context.prCreationDefaults.reviewer>"`.
 Verify the command succeeds, output the PR URL to me, and then immediately delete the `.pr_body.md` file.
  | GitHub CLI and File System I/O | no |
 

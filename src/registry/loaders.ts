@@ -82,13 +82,61 @@ function parseWithSchemaOrThrow<T>(
   throw new ValidationError(`Schema validation failed for ${filePath}`, parsed.error);
 }
 
+async function loadContextValueFromFile(relativePath: string): Promise<unknown> {
+  const absolutePath = path.join(ROOT, relativePath);
+  const rawContent = await fs.readFile(absolutePath, "utf8");
+  const extension = path.extname(relativePath).toLowerCase();
+
+  if (extension === ".yaml" || extension === ".yml") {
+    return parseYaml(rawContent);
+  }
+
+  if (extension === ".json") {
+    return JSON.parse(rawContent) as unknown;
+  }
+
+  return rawContent.trimEnd();
+}
+
 export async function loadWorkflowDefinitions(): Promise<WorkflowDefinition[]> {
   const files = await listFilesBySuffix(WORKFLOWS_DIR, ".workflow.yaml");
   const workflows = await Promise.all(
     files.map(async (filePath) => {
       const rawText = await fs.readFile(filePath, "utf8");
       const raw = parseYaml(rawText) as unknown;
-      return parseWithSchemaOrThrow<WorkflowDefinition>(workflowSchema, raw, filePath);
+      const workflow = parseWithSchemaOrThrow<WorkflowDefinition>(workflowSchema, raw, filePath);
+      if (!workflow.additionalContext || workflow.additionalContext.length === 0) {
+        return workflow;
+      }
+
+      const loadedContextEntries = await Promise.all(
+        workflow.additionalContext.map(async (item) => {
+          try {
+            const value = await loadContextValueFromFile(item.path);
+            return [item.key, value] as const;
+          } catch (error) {
+            throw new ValidationError(
+              `Failed to load additional workflow context '${item.key}' from '${item.path}' referenced by ${path.relative(
+                ROOT,
+                filePath
+              )}: ${error instanceof Error ? error.message : String(error)}`
+            );
+          }
+        })
+      );
+
+      const loadedContext = Object.fromEntries(loadedContextEntries);
+      const mergedContext = {
+        ...(workflow.context ?? {}),
+        ...loadedContext
+      };
+
+      const { additionalContext, ...workflowWithoutAdditionalContext } = workflow;
+
+      return {
+        ...workflowWithoutAdditionalContext,
+        context: mergedContext
+      };
     })
   );
 
