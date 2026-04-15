@@ -1,0 +1,13 @@
+name: workflow.exampleFlow
+title: Example Flow
+description: One sentence describing orchestration intent.
+objective: Define what the external agent should accomplish and produce.
+constraints:
+  - Optional workflow-level policy statement.
+steps:
+  - id: first_step
+    requiredCapability: Optional capability label (for example, API Query / Analysis).
+    guidance: Explain what this step should do and what artifact/state it should produce.
+  - id: second_step
+    guidance: Explain what this step should do and what artifact/state it should produce.
+    optional: true

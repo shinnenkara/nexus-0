@@ -1,0 +1,41 @@
+name: workflow.updatePrDescription
+title: Update PR Description
+description: Updates the PR description's changes section using lean context from git commits and stat diffs, executing changes via the GitHub CLI.
+objective: Refresh the PR description so it accurately reflects recent technical changes while strictly preserving stable sections from the existing markdown template.
+constraints:
+  - "Execute all steps strictly sequentially."
+  - "Fail immediately and prompt the user if any command returns an error (e.g., no PR found, no template matched)."
+  - "Keep the '## Description:' and '### Related Issue:' sections exactly as they are."
+  - "Do not add any conversational filler or new markdown sections."
+steps:
+  - id: pre_flight_and_fetch
+    requiredCapability: "GitHub CLI (gh) execution"
+    guidance: |
+      You must fetch the current PR description and the target base branch.
+      1. Run `gh pr view --json body --jq '.body'` to retrieve the unescaped markdown body.
+      2. Run `gh pr view --json baseRefName --jq '.baseRefName'` to retrieve the base branch.
+      Validation State Check: Inspect the raw markdown output. If the body does not contain exactly `## Description:` and `### Changes:`, STOP execution and inform the user the template is broken. 
+      State Transition: Retain the raw markdown body and the base branch name in your working memory for use in subsequent steps.
+  - id: gather_delta_context
+    requiredCapability: "Git CLI operations"
+    guidance: |
+      Gather deterministic, token-optimized context of the changes. Using the base branch name retrieved in Step 1:
+      1. Run `git log <baseRefName>..HEAD --oneline` to get recent commits.
+      2. Run `git diff <baseRefName>..HEAD --stat` to get a file modification overview.
+      3. Run `git diff <baseRefName>...HEAD -- . ':(exclude)*lock.json' ':(exclude)dist/*' ':(exclude)*.svg'` to get the filtered technical changes without overwhelming your context window.
+      State Transition: Store this commit and diff context in memory to inform the description update in Step 3.
+  - id: patch_description
+    requiredCapability: "Markdown text manipulation"
+    guidance: |
+      Using the raw PR markdown body (from Step 1) and the git delta context (from Step 2), completely rewrite the bulleted list under the `### Changes:` section. 
+      Merge the original technical changes with the newly committed changes into one cohesive, up-to-date bulleted list. 
+      Ensure the rest of the PR body remains completely untouched. 
+      State Transition: Formulate the exact new markdown string and hold it in memory for the final execution step.
+  - id: execute_and_clean
+    requiredCapability: "File system and GitHub CLI operations"
+    guidance: |
+      1. Write the updated markdown string exactly as formulated into a temporary file named `.pr_body_update.md` in the current directory. 
+      2. Run `gh pr edit --body-file .pr_body_update.md` to apply the update to GitHub. 
+      3. Verify the command succeeds. 
+      4. Always delete the `.pr_body_update.md` file to clean up your workspace, regardless of whether the edit command succeeded or failed.
+      Finally, output a brief success summary to the user.

@@ -1,0 +1,22 @@
+name: workflow.analyzeTicket
+title: Analyze Ticket
+description: Analyze a ClickUp ticket and determine whether implementation planning can proceed.
+objective: Understand requirements and either produce a high-confidence implementation plan or draft a clarification request when required context is missing.
+constraints:
+  - Read-only ClickUp access only. Read descriptions and comments, but NEVER write or modify anything in ClickUp.
+  - Follow existing patterns. Do NOT invent new architectural patterns; find and mimic existing conventions.
+  - No UI/E2E tests. Only suggest API unit/integration tests and remind to add `data-testid` attributes on React components.
+  - Drafts only. All communication (questions for PM/teammates) must be drafted in chat for the user to send manually.
+steps:
+  - id: parse_ticket
+    requiredCapability: Text Extraction / Regex
+    guidance: Analyze the user-provided `ticketRef` (URL or raw ID) and normalize it into `workspace_id` and `ticket_id` values for subsequent steps.
+  - id: get_ticket_context
+    requiredCapability: ClickUp MCP
+    guidance: Use `workspace_id` and `ticket_id` to fetch complete ticket context and capture it as `ticket_context` with title, description, requirements, comments, and acceptance criteria.
+  - id: search_and_gap_check
+    requiredCapability: Codebase Search / Logic Analysis
+    guidance: Search the codebase for implied entry points from `ticket_context` (API routes, schemas, React components), then decide if requirements are actionable; if not actionable, stop and draft a clarification message.
+  - id: generate_dev_plan
+    requiredCapability: Text Generation / Planning
+    guidance: If requirements are actionable, synthesize ticket and codebase context into a concise implementation plan with existing patterns to extend, concrete file paths, implementation sequence, and testing approach.

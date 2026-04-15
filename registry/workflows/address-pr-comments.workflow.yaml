@@ -1,0 +1,14 @@
+name: workflow.addressPrComments
+title: Address PR Comments
+description: Collects PR review context and inline comments to draft communication and implementation actions.
+objective: Convert reviewer feedback into a clear action plan and ready-to-send draft responses for comments that need clarification.
+constraints:
+  - Read-only GitHub data access.
+  - Draft comments only; no auto-response.
+steps:
+  - id: get_pr_context
+    guidance: Load PR body and top-level review feedback to establish reviewer intent and scope.
+  - id: get_inline_comments
+    guidance: Retrieve normalized inline review comments grouped by file and line.
+  - id: get_branch_context
+    guidance: Associate review feedback with current branch and base context to scope implementation updates.

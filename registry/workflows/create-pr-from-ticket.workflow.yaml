@@ -1,0 +1,37 @@
+name: workflow.createPrFromTicket
+title: Create PR From Ticket
+description: Builds PR body from branch and ticket context with deterministic fallback chain and executes GitHub PR creation.
+objective: Draft a high-quality pull request title and markdown body grounded in ticket intent and actual code changes, then autonomously publish it via GitHub CLI.
+constraints:
+  - Execute steps strictly sequentially without asking for intermediate confirmation.
+  - Do not pass the PR body as a string to the CLI; you must write it to a temporary file.
+  - The PR body must strictly follow the defined markdown sections (Description, Changes, Related Issue, Demonstration).
+steps:
+  - id: get_branch_context
+    requiredCapability: Git CLI operations
+    guidance: |
+      Extract the current git branch name. Parse the branch name to extract the ticket ID (expecting format `type/dev-XXXX/description`) and capitalize it (e.g., `DEV-XXXX`). Retain this ID in your context for the next step.
+  - id: get_ticket_context
+    requiredCapability: ClickUp MCP
+    guidance: |
+      Use the extracted ticket ID to fetch business rationale. Follow this strict fallback chain.
+      Attempt 1: Search the issue tracker (e.g., ClickUp MCP) for the title, description, and requirements.
+      Attempt 2: Read recent chat history in our thread.
+      Attempt 3: Proceed with no context.
+    optional: true
+  - id: get_delta_summary
+    requiredCapability: Git diff analysis
+    guidance: |
+      Execute a git diff against the base branch. Extract core technical changes into a concise list.
+      Identify specific structural changes (e.g., modified API payloads, function signatures) to use for a "Before/After" demonstration.
+  - id: generate_pr_body
+    requiredCapability: Markdown text generation
+    guidance: |
+      Synthesize the gathered context into a PR Title (e.g., "Feat: [DEV-XXXX] <Title>") and body.
+      The body must include exactly these headings: "## Description", "### Changes" (bulleted list), "### Related Issue" (with markdown link to ClickUp), and "## Demonstration" (Before/After snippets, or explicitly write "[none]" if none exist).
+  - id: execute_pr_creation
+    requiredCapability: GitHub CLI and File System I/O
+    guidance: |
+      Write the synthesized PR body to a temporary file named `.pr_body.md` in the root directory.
+      Execute `gh pr create --title "<Title>" --body-file .pr_body.md --assignee "shinnenkara" --reviewer "carbmee/data-raiders"`.
+      Verify the command succeeds, output the PR URL to me, and then immediately delete the `.pr_body.md` file.

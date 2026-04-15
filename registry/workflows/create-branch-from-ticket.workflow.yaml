@@ -1,0 +1,23 @@
+name: workflow.createBranchFromTicket
+title: Create Branch From Ticket
+description: Fetches ticket context from an issue tracker, generates a compliant branch name, and executes git branch creation.
+objective: Produce a compliant branch name from ticket metadata and automatically execute the git branch creation sequence.
+constraints:
+  - "Branch prefixes must strictly evaluate to 'feat/', 'fix/', or 'test/' based on the ticket metadata."
+  - "The branch slug (small-description) must be under 30 characters, lowercase, and strictly hyphen-separated."
+  - "Filler words and special characters must be stripped from the branch slug."
+  - "Do not ask for user confirmation before executing Git commands."
+steps:
+  - id: parse_ticket
+    requiredCapability: Text Parsing
+    guidance: Normalize the provided user input (ticket reference or URL) into a clean, standalone ticket ID.
+    notes: Verify the output contains no URL fragments before proceeding.
+  - id: get_ticket_context
+    requiredCapability: Issue Tracker API Access
+    guidance: Using the normalized ticket ID from the previous step, fetch the exact task name, task type, and associated tags.
+  - id: format_branch_name
+    requiredCapability: String Manipulation
+    guidance: Using the fetched ticket context and workflow constraints, construct the exact branch name string. Store this string in state.
+  - id: execute_git_operations
+    requiredCapability: Git CLI Execution
+    guidance: Using the formatted branch name, sequentially execute 'git checkout main', 'git pull origin main', and 'git checkout -b {branch_name}'.
