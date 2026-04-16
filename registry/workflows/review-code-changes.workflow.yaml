@@ -1,0 +1,46 @@
+name: workflow.reviewCodeChanges
+title: Review Changes
+description: Reviews branch or provided diff changes for high-confidence defects, risks, and improvement opportunities.
+objective: Produce a deterministic, evidence-based code review report grounded in observed diffs and local code context.
+constraints:
+  - Execute steps sequentially and carry forward state from each completed step.
+  - Use semantic capabilities only; do not depend on hard-coded or fictional tool names.
+  - Report only high-confidence findings backed by diff and code context evidence.
+  - Include pre-existing defects only when they are directly adjacent to or impacted by changed code.
+  - If no validated findings exist, explicitly return "No high-confidence issues found" and include residual risks or testing gaps.
+steps:
+  - id: validate_review_scope
+    requiredCapability: Git state inspection and diff normalization
+    guidance: |
+      Determine the review target and normalize it into a single diff payload.
+      1. If `code_changes` is already provided in context, validate it is non-empty and usable.
+      2. Otherwise, resolve the active branch and base reference, then collect a diff suitable for review.
+      3. Confirm the diff maps to the intended branch state before proceeding.
+      State Transition: Persist a validated normalized diff as `review_diff`.
+  - id: gather_change_context
+    requiredCapability: File system reading and codebase search
+    guidance: |
+      Use `review_diff` to identify changed files, then gather only the surrounding code needed to understand behavior and impact.
+      Prioritize touched files first, then minimal related dependencies or call sites when required for correctness.
+      State Transition: Persist structured context as `review_context` keyed by changed file and relevant dependency references.
+  - id: evaluate_findings
+    requiredCapability: Static analysis and risk assessment
+    guidance: |
+      Analyze `review_diff` and `review_context` for concrete defects and regressions, including:
+      logic errors, unhandled edge cases, null or undefined failures, concurrency hazards, security flaws, resource leaks, API contract mismatches, caching bugs, and convention violations.
+      Reject speculative claims; each retained finding must include direct evidence from reviewed code context.
+      State Transition: Persist validated findings as `validated_findings` with severity, evidence, impact, and suggested remediation.
+  - id: evaluate_adjacent_preexisting_issues
+    requiredCapability: Localized code health assessment
+    guidance: |
+      Inspect immediately adjacent code discovered during analysis for pre-existing defects that materially affect changed behavior.
+      Include only issues with clear impact and actionable remediation.
+      State Transition: Persist any accepted adjacent items as `adjacent_findings`; persist an explicit empty state if none are found.
+    optional: true
+  - id: generate_review_output
+    requiredCapability: Structured technical reporting
+    guidance: |
+      Build the final review report from `validated_findings` and optional `adjacent_findings`.
+      Present issues ordered by severity and include: affected file/scope, concrete evidence, user or system impact, and recommended fix.
+      If no issues are validated, return "No high-confidence issues found" and list residual risks or testing gaps.
+      State Transition: Persist and deliver `final_review_report` as the user-facing output.

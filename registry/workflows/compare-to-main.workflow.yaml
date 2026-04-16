@@ -1,0 +1,55 @@
+name: workflow.compareToMain
+title: Compare Branch To Main
+description: Compares the current branch to main, captures optional PR context, and returns a structured change report with risks and follow-up focus areas.
+objective: Produce a deterministic, review-ready summary of branch changes against main with enough evidence for rapid review and prioritization.
+constraints:
+  - Execute steps strictly sequentially and carry forward state from each step.
+  - If the current branch resolves to `main`, stop immediately and ask the user to switch branches before continuing.
+  - Treat PR metadata collection as optional; continue even if no PR exists for the branch.
+  - Base all conclusions on observed git and PR data; avoid unsupported assumptions.
+  - End by asking whether the user wants a deeper dive into any file or subsystem.
+steps:
+  - id: detect_branch_context
+    requiredCapability: Git CLI operations
+    guidance: |
+      Run `git branch --show-current` to get the active branch name and store it as `branch_name`.
+      Verify `branch_name` is not `main`.
+      State Transition: Persist `branch_name` as validated branch context for all remaining steps.
+  - id: sync_base_reference
+    requiredCapability: Git remote sync
+    guidance: |
+      Run `git fetch origin main` to update the local reference for the base branch.
+      Verify the command completes successfully before proceeding.
+      State Transition: Mark `origin/main` as the authoritative comparison baseline.
+  - id: collect_diff_stats
+    requiredCapability: Git diff analysis
+    guidance: |
+      Run `git diff --stat origin/main...HEAD` and capture files changed, insertions, and deletions.
+      State Transition: Store this result as `diff_stat_summary` to drive the overview section in the final report.
+  - id: collect_full_diff
+    requiredCapability: Git patch inspection
+    guidance: |
+      Run `git diff origin/main...HEAD` and capture the patch-level changes.
+      State Transition: Store this output as `full_diff_context` for file-by-file analysis and risk detection.
+  - id: collect_pr_context
+    requiredCapability: GitHub CLI data retrieval
+    guidance: |
+      Attempt to run:
+      `gh pr view --json number,title,body,state,baseRefName,headRefName,additions,deletions,changedFiles,reviewDecision,comments`
+      If it succeeds, store the result as `pr_context`.
+      If it fails (for example, no PR exists), record `pr_context` as unavailable and continue.
+      State Transition: Persist either structured PR metadata or an explicit unavailable state for conditional reporting.
+    optional: true
+  - id: synthesize_comparison_report
+    requiredCapability: Diff interpretation and structured writing
+    guidance: |
+      Using `branch_name`, `diff_stat_summary`, `full_diff_context`, and optional `pr_context`, generate a structured report with:
+      1) Overview: branch, base (`main`), total files changed, lines added, lines removed.
+      2) Changes by file: one-line explanation per changed file describing what changed and likely intent.
+      3) Notable patterns: potential issues, breaking changes, missing tests, or high-risk areas.
+      4) PR context: include title, description, and unresolved comments only when `pr_context` is available.
+      State Transition: Persist this as `comparison_report` for user-facing delivery.
+  - id: request_deeper_dive_target
+    requiredCapability: Conversational follow-up prompting
+    guidance: |
+      Present `comparison_report` to the user and then ask whether they want a deeper dive into any specific file or area of the diff.

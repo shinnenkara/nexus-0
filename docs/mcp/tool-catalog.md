@@ -41,6 +41,44 @@ Analyze a ClickUp ticket and determine whether implementation planning can proce
 | `search_and_gap_check` | Search the codebase for implied entry points from `ticket_context` (API routes, schemas, React components), then decide if requirements are actionable; if not actionable, stop and draft a clarification message. | Codebase Search / Logic Analysis | no |
 | `generate_dev_plan` | If requirements are actionable, synthesize ticket and codebase context into a concise implementation plan with existing patterns to extend, concrete file paths, implementation sequence, and testing approach. | Text Generation / Planning | no |
 
+### `workflow.compareToMain`
+
+Compares the current branch to main, captures optional PR context, and returns a structured change report with risks and follow-up focus areas.
+
+- Objective: Produce a deterministic, review-ready summary of branch changes against main with enough evidence for rapid review and prioritization.
+
+| Step | Guidance | Required Capability | Optional |
+| --- | --- | --- | --- |
+| `detect_branch_context` | Run `git branch --show-current` to get the active branch name and store it as `branch_name`.
+Verify `branch_name` is not `main`.
+State Transition: Persist `branch_name` as validated branch context for all remaining steps.
+ | Git CLI operations | no |
+| `sync_base_reference` | Run `git fetch origin main` to update the local reference for the base branch.
+Verify the command completes successfully before proceeding.
+State Transition: Mark `origin/main` as the authoritative comparison baseline.
+ | Git remote sync | no |
+| `collect_diff_stats` | Run `git diff --stat origin/main...HEAD` and capture files changed, insertions, and deletions.
+State Transition: Store this result as `diff_stat_summary` to drive the overview section in the final report.
+ | Git diff analysis | no |
+| `collect_full_diff` | Run `git diff origin/main...HEAD` and capture the patch-level changes.
+State Transition: Store this output as `full_diff_context` for file-by-file analysis and risk detection.
+ | Git patch inspection | no |
+| `collect_pr_context` | Attempt to run:
+`gh pr view --json number,title,body,state,baseRefName,headRefName,additions,deletions,changedFiles,reviewDecision,comments`
+If it succeeds, store the result as `pr_context`.
+If it fails (for example, no PR exists), record `pr_context` as unavailable and continue.
+State Transition: Persist either structured PR metadata or an explicit unavailable state for conditional reporting.
+ | GitHub CLI data retrieval | yes |
+| `synthesize_comparison_report` | Using `branch_name`, `diff_stat_summary`, `full_diff_context`, and optional `pr_context`, generate a structured report with:
+1) Overview: branch, base (`main`), total files changed, lines added, lines removed.
+2) Changes by file: one-line explanation per changed file describing what changed and likely intent.
+3) Notable patterns: potential issues, breaking changes, missing tests, or high-risk areas.
+4) PR context: include title, description, and unresolved comments only when `pr_context` is available.
+State Transition: Persist this as `comparison_report` for user-facing delivery.
+ | Diff interpretation and structured writing | no |
+| `request_deeper_dive_target` | Present `comparison_report` to the user and then ask whether they want a deeper dive into any specific file or area of the diff.
+ | Conversational follow-up prompting | no |
+
 ### `workflow.createBranchFromTicket`
 
 Fetches ticket context from an issue tracker, generates a compliant branch name, and executes git branch creation.
@@ -81,6 +119,39 @@ Use `context.prCreationDefaults.assignee` and `context.prCreationDefaults.review
 Execute `gh pr create --title "<Title>" --body-file .pr_body.md --assignee "<context.prCreationDefaults.assignee>" --reviewer "<context.prCreationDefaults.reviewer>"`.
 Verify the command succeeds, output the PR URL to me, and then immediately delete the `.pr_body.md` file.
  | GitHub CLI and File System I/O | no |
+
+### `workflow.reviewCodeChanges`
+
+Reviews branch or provided diff changes for high-confidence defects, risks, and improvement opportunities.
+
+- Objective: Produce a deterministic, evidence-based code review report grounded in observed diffs and local code context.
+
+| Step | Guidance | Required Capability | Optional |
+| --- | --- | --- | --- |
+| `validate_review_scope` | Determine the review target and normalize it into a single diff payload.
+1. If `code_changes` is already provided in context, validate it is non-empty and usable.
+2. Otherwise, resolve the active branch and base reference, then collect a diff suitable for review.
+3. Confirm the diff maps to the intended branch state before proceeding.
+State Transition: Persist a validated normalized diff as `review_diff`.
+ | Git state inspection and diff normalization | no |
+| `gather_change_context` | Use `review_diff` to identify changed files, then gather only the surrounding code needed to understand behavior and impact.
+Prioritize touched files first, then minimal related dependencies or call sites when required for correctness.
+State Transition: Persist structured context as `review_context` keyed by changed file and relevant dependency references.
+ | File system reading and codebase search | no |
+| `evaluate_findings` | Analyze `review_diff` and `review_context` for concrete defects and regressions, including:
+logic errors, unhandled edge cases, null or undefined failures, concurrency hazards, security flaws, resource leaks, API contract mismatches, caching bugs, and convention violations.
+Reject speculative claims; each retained finding must include direct evidence from reviewed code context.
+State Transition: Persist validated findings as `validated_findings` with severity, evidence, impact, and suggested remediation.
+ | Static analysis and risk assessment | no |
+| `evaluate_adjacent_preexisting_issues` | Inspect immediately adjacent code discovered during analysis for pre-existing defects that materially affect changed behavior.
+Include only issues with clear impact and actionable remediation.
+State Transition: Persist any accepted adjacent items as `adjacent_findings`; persist an explicit empty state if none are found.
+ | Localized code health assessment | yes |
+| `generate_review_output` | Build the final review report from `validated_findings` and optional `adjacent_findings`.
+Present issues ordered by severity and include: affected file/scope, concrete evidence, user or system impact, and recommended fix.
+If no issues are validated, return "No high-confidence issues found" and list residual risks or testing gaps.
+State Transition: Persist and deliver `final_review_report` as the user-facing output.
+ | Structured technical reporting | no |
 
 ### `workflow.updatePrDescription`
 
